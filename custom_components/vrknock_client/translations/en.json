@@ -5,17 +5,17 @@
                 "title": "Blueprint",
                 "description": "If you need help with the configuration have a look here: https://github.com/custom-components/integration_blueprint",
                 "data": {
-                    "username": "Username",
-                    "password": "Password"
+                    "host": "Host",
+                    "code": "Code"
                 }
             }
         },
         "error": {
-            "auth": "Username/Password is wrong."
+            "Wrong code": "Wrong code",
+            "VR Controller not running": "VR Controller not running",
+            "VR Headset is not connected": "VR Headset is not connected"
         },
-        "abort": {
-            "single_instance_allowed": "Only a single instance is allowed."
-        }
+        "abort": {}
     },
     "options": {
         "step": {

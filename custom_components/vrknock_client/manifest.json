@@ -1,12 +1,15 @@
 {
-  "domain": "integration_blueprint",
-  "name": "Integration blueprint",
+  "domain": "vrknock",
+  "name": "VRKnock Client",
   "documentation": "https://github.com/custom-components/integration_blueprint",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/custom-components/integration_blueprint/issues",
   "version": "0.0.0",
   "config_flow": true,
+  "requirements": [
+    "websocket-client==1.2.3"
+  ],
   "codeowners": [
-    "@ludeeus"
+    "@inventivetalent"
   ]
 }

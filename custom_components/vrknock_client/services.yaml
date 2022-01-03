@@ -1,0 +1,12 @@
+trigger_knock:
+  name: Trigger Knock
+  description: Trigger Knock
+  target:
+    device:
+      integration: vrknock
+  fields:
+    message:
+      name: Message
+      description: Message to Display
+      required: true
+      default: "Someone Wants Your Attention!"

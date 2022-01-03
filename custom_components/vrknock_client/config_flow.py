@@ -4,10 +4,13 @@ from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 import voluptuous as vol
 
+from custom_components.vrknock_client.client import VRKnockClient
+
 from .api import IntegrationBlueprintApiClient
 from .const import (
-    CONF_PASSWORD,
-    CONF_USERNAME,
+    CONF_HOST,
+    CONF_CODE,
+    CONF_MODE,
     DOMAIN,
     PLATFORMS,
 )
@@ -26,28 +29,30 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Handle a flow initialized by the user."""
         self._errors = {}
+        print("async_step_user")
 
         # Uncomment the next 2 lines if only a single instance of the integration is allowed:
         # if self._async_current_entries():
         #     return self.async_abort(reason="single_instance_allowed")
 
         if user_input is not None:
-            valid = await self._test_credentials(
-                user_input[CONF_USERNAME], user_input[CONF_PASSWORD]
+            err = await self._test_credentials(
+                user_input[CONF_HOST], user_input[CONF_CODE]
             )
-            if valid:
+            if err is None:
                 return self.async_create_entry(
-                    title=user_input[CONF_USERNAME], data=user_input
+                    title=user_input[CONF_HOST], data=user_input
                 )
             else:
-                self._errors["base"] = "auth"
+                self._errors["base"] = err
 
             return await self._show_config_form(user_input)
 
         user_input = {}
         # Provide defaults for form
-        user_input[CONF_USERNAME] = ""
-        user_input[CONF_PASSWORD] = ""
+        user_input[CONF_HOST] = ""
+        user_input[CONF_CODE] = ""
+        user_input[CONF_MODE] = ""
 
         return await self._show_config_form(user_input)
 
@@ -58,27 +63,33 @@ class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _show_config_form(self, user_input):  # pylint: disable=unused-argument
         """Show the configuration form to edit location data."""
+        print("_show_config_form")
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_USERNAME, default=user_input[CONF_USERNAME]): str,
-                    vol.Required(CONF_PASSWORD, default=user_input[CONF_PASSWORD]): str,
+                    vol.Required(CONF_HOST, default=user_input[CONF_HOST]): str,
+                    vol.Required(CONF_CODE, default=user_input[CONF_CODE]): str,
                 }
             ),
             errors=self._errors,
         )
 
-    async def _test_credentials(self, username, password):
-        """Return true if credentials is valid."""
+    async def _test_credentials(self, host, code):
+        """Return None if credentials is valid."""
+        print("_test_credentials")
         try:
-            session = async_create_clientsession(self.hass)
-            client = IntegrationBlueprintApiClient(username, password, session)
-            await client.async_get_data()
-            return True
-        except Exception:  # pylint: disable=broad-except
-            pass
-        return False
+            client = VRKnockClient(host, code)
+            status = await client.get_status()
+            print("query_status get_status")
+            print(status)
+            if status["status"] == 0:
+                return None
+            print("Error: " + status["msg"])
+            return status["msg"]
+        except Exception as err:
+            raise
+        return "unknown error"
 
 
 class BlueprintOptionsFlowHandler(config_entries.OptionsFlow):
@@ -112,5 +123,5 @@ class BlueprintOptionsFlowHandler(config_entries.OptionsFlow):
     async def _update_options(self):
         """Update config entry options."""
         return self.async_create_entry(
-            title=self.config_entry.data.get(CONF_USERNAME), data=self.options
+            title=self.config_entry.data.get(CONF_HOST), data=self.options
         )
